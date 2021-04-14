@@ -46,19 +46,30 @@ export default {
     },
     async addUser() {
       try {
-        await axios.post("/api/users", {
+        const userAdded = await axios.post("/api/users", {
           username: this.username,
           academicPrestige: this.$root.$data.initData.academicPrestige,
           yearInSchool: this.$root.$data.initData.yearInSchool,
           degreeStatus: this.$root.$data.initData.degreeStatus,
-          assignmentsEnglish: this.$root.$data.initData.emptyArray,
-          assignmentsMathematics: this.$root.$data.initData.emptyArray,
-          assignmentsHumanities: this.$root.$data.initData.emptyArray,
-          assignmentsFineArts: this.$root.$data.initData.emptyArray,
-          assignmentsCommunications: this.$root.$data.initData.emptyArray,
-          assignmentsScience: this.$root.$data.initData.emptyArray,
-          assignmentsSocialSciences: this.$root.$data.initData.emptyArray,
-          research: this.$root.$data.initData.emptyArray
+          assignmentsEnglish: this.$root.$data.initData.emptyAssignmentsArray,
+          assignmentsMathematics: this.$root.$data.initData.emptyAssignmentsArray,
+          assignmentsHumanities: this.$root.$data.initData.emptyAssignmentsArray,
+          assignmentsFineArts: this.$root.$data.initData.emptyAssignmentsArray,
+          assignmentsCommunications: this.$root.$data.initData.emptyAssignmentsArray,
+          assignmentsScience: this.$root.$data.initData.emptyAssignmentsArray,
+          assignmentsSocialSciences: this.$root.$data.initData.emptyAssignmentsArray,
+          research: this.$root.$data.initData.emptyResearchArray,
+          lastLoggedIn: new Date()
+        });
+        // Set the user's initial resources in the database.
+        await axios.post(`/api/users/${userAdded.data._id}/resources`, {
+          user: userAdded,
+          food: this.$root.$data.initData.resources.food,
+          brainPower: this.$root.$data.initData.resources.brainPower,
+          time: this.$root.$data.initData.resources.time,
+          maxFood: this.$root.$data.initData.resources.maxFood,
+          maxBrainPower: this.$root.$data.initData.resources.maxBrainPower,
+          maxTime: this.$root.$data.initData.resources.maxTime
         });
         this.isUsernameUsed = false;
         this.$root.$data.isLoggedIn = true;
@@ -69,7 +80,7 @@ export default {
         }
         console.log(error);
       }
-    }
+    },
   }
 }
 </script>
@@ -92,7 +103,7 @@ a:hover {
   justify-content: center;
   align-items: center;
   width: 96%;
-  height: 10%;
+  height: 50px;
   padding: 5px;
   margin: 10px 0px;
   background-color: #FF6347;
@@ -138,7 +149,7 @@ a:hover {
   justify-content: center;
   align-items: center;
   width: 100%;
-  height: 50%;
+  height: 100px;
 }
 
 /* Header Styles */
@@ -200,7 +211,7 @@ a:hover {
   display: flex;
   flex-direction: column;
   width: 33%;
-  height: 33%;
+  height: 800px;
   justify-content: center;
   margin: 30px auto;
   flex-grow: 1;
@@ -228,7 +239,7 @@ a:hover {
 .text-box {
   display: flex;
   width: 100%;
-  height: 15%;
+  height: 60px;
   font-family: "Garamond";
   font-size: 1.3em;
   align-items: center;
@@ -262,11 +273,8 @@ a:hover {
   .login-wrapper,
   .register-wrapper {
     width: 66%;
-    height: 33%;
+    height: 700px;
     align-items: center;
-  }
-  .register {
-    height: 600px;
   }
   .text-box {
     height: 10%;

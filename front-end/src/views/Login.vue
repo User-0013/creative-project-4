@@ -8,6 +8,7 @@
           <input v-model="username" class="text-box"/>
           <p>Password:</p>
           <input type="password" v-model="password" class="text-box"/>
+          <div class="already-exists" v-if="!isUsernamePasswordCorrect">Username or password is wrong. Please try again.</div>
         </form>
         <div class='login-button'>
           <button @click="checkLogin(username)" class="button">Login</button>
@@ -19,20 +20,34 @@
 </template>
 
 <script>
+import axios from 'axios';
 export default {
   name: 'Login',
   data() {
     return {
       username: "billy-bob",
-      password: "helloWorld!"
+      password: "helloWorld!",
+      isUsernamePasswordCorrect: true
     }
   },
   methods: {
-    checkLogin(username) {
-      this.$root.$data.isLoggedIn = true;
+    async checkLogin(username) {
       this.$root.$data.username = username;
+      await this.getUser();
       if (this.$root.$data.isLoggedIn) {
         this.$root.$router.push({path: `/overview/${this.$root.$data.username}`})
+      }
+    },
+    async getUser() {
+      try {
+        await axios.get('/api/users', {params: {username: this.username}});
+        this.$root.$data.isLoggedIn = true;
+      } catch (error) {
+        if (error.response.status == 404) {
+          this.$root.$data.isLoggedIn = false;
+          this.isUsernamePasswordCorrect = false;
+        }
+        console.log(error);
       }
     }
   }
@@ -50,6 +65,18 @@ export default {
   a:hover {
    text-decoration: none;
    color: #FFF;
+  }
+
+  .already-exists {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 96%;
+    height: 50px;
+    padding: 5px;
+    margin: 10px 0px;
+    background-color: #FF6347;
+    border-radius: 5px;
   }
 
   /* Buttons */
@@ -144,7 +171,7 @@ export default {
    display: flex;
    flex-direction: column;
    width: 33%;
-   height: 33%;
+   height: 550px;
    justify-content: center;
    margin: 30px auto;
    flex-grow: 1;
@@ -155,7 +182,7 @@ export default {
    display: flex;
    flex-direction: column;
    width: 100%;
-   height: 450px;
+   height: 100%;
    background-color: #D1E8E2;
    padding: 5% 5%;
    margin: 2% auto;
@@ -172,7 +199,7 @@ export default {
   .text-box {
    display: flex;
    width: 100%;
-   height: 30%;
+   height: 60px;
    font-family: "Garamond";
    font-size: 1.3em;
    align-items: center;

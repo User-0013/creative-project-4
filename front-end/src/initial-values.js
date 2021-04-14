@@ -5,7 +5,10 @@ export let initData = {
     time: 200,
     maxFood: 1000,
     maxBrainPower: 1000,
-    maxTime: 500
+    maxTime: 500,
+    foodGrowthCoeff: 0.1,
+    brainPowerGrowthCoeff: 0.15,
+    timeGrowthCoeff: 0.05
   },
   research: {
     english: 1,
@@ -25,22 +28,33 @@ export let initData = {
   },
   assignments: {
     paper: {
-      food: 300,
+      food: 100,
       brainPower: 150,
-      time: 500
+      time: 50
     },
     project: {
-      time: 1000,
-      brainPower: 2000,
-      food: 4000
+      time: 100,
+      brainPower: 200,
+      food: 100
     },
     exam: {
-      time: 500,
-      brainPower: 4000,
-      food: 250
+      time: 50,
+      brainPower: 250,
+      food: 100
     }
   },
-  emptyArray: [],
+  subjects: {
+    english: "English",
+    mathematics: "Mathematics",
+    humanities: "Humanities",
+    fineArts: "Fine Arts",
+    communications: "Communications",
+    science: "Science",
+    socialSciences: "Social Sciences"
+  },
+  secondsInHour: 3600,
+  emptyAssignmentsArray: [0, 0, 0],
+  emptyResearchArray: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   degreeStatus: "Undergrad",
   yearInSchool: "Freshman",
   academicPrestige: 0

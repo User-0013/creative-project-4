@@ -3,33 +3,57 @@
   <div class="assignment-req">
     <h3>Paper</h3>
     <p>Resources Required:</p>
-    <p>Time: {{paperTime}}, Brain Power: {{paperBrainPower}}, Food: {{paperFood}}</p>
+    <div class="resources-req-wrapper">
+      <div class="resources-req">
+        <p>Time: {{paperTime}},</p>
+        <p>Brain Power: {{paperBrainPower}},</p>
+        <p>Food: {{paperFood}}</p>
+      </div>
+    </div>
+    <p>Current Number: {{papers}}</p>
     <form @submit.prevent="" class="pure-form">
       <div class="input-wrapper">
-        <input type="number" v-model="quantityPaper" class="input"/>
-        <div class="button-wrapper"><button @click="addTask('Paper', quantityPaper, timeRemainingPaper)" class="button">Start</button></div>
+        <!-- onkeypress code taken from https://stackoverflow.com/questions/32777184/html-input-for-positive-whole-numbers-only-type-number -->
+        <input type="number" min="1" onkeypress="return (event.charCode == 8 || event.charCode == 0 || event.charCode == 13) ? null : event.charCode >= 49 && event.charCode <= 57" v-model="quantityPaper" class="input"/>
+        <div class="button-wrapper"><button @click="addTask('Paper', quantityPaper, timeRemainingPaper, paperTime, paperBrainPower, paperFood)" class="button">Start</button></div>
       </div>
     </form>
   </div>
   <div class="assignment-req">
     <h3>Project</h3>
     <p>Resources Required:</p>
-    <p>Time: {{projectTime}}, Brain Power: {{projectBrainPower}}, Food: {{projectFood}}</p>
+    <div class="resources-req-wrapper">
+      <div class="resources-req">
+        <p>Time: {{projectTime}},</p>
+        <p>Brain Power: {{projectBrainPower}},</p>
+        <p>Food: {{projectFood}}</p>
+      </div>
+    </div>
+    <p>Current Number: {{projects}}</p>
     <form @submit.prevent="" class="pure-form">
       <div class="input-wrapper">
-        <input type="number" v-model="quantityProject" class="input"/>
-        <div class="button-wrapper"><button @click="addTask('Project', quantityProject, timeRemainingProject)" class="button">Start</button></div>
+        <!-- onkeypress code taken from https://stackoverflow.com/questions/32777184/html-input-for-positive-whole-numbers-only-type-number -->
+        <input type="number" min="1" onkeypress="return (event.charCode == 8 || event.charCode == 0 || event.charCode == 13) ? null : event.charCode >= 49 && event.charCode <= 57" v-model="quantityProject" class="input"/>
+        <div class="button-wrapper"><button @click="addTask('Project', quantityProject, timeRemainingProject, projectTime, projectBrainPower, projectFood)" class="button">Start</button></div>
       </div>
     </form>
   </div>
   <div class="assignment-req">
     <h3>Exam</h3>
     <p>Resources Required:</p>
-    <p>Time: {{examTime}}, Brain Power: {{examBrainPower}}, Food: {{examFood}}</p>
+    <div class="resources-req-wrapper">
+      <div class="resources-req">
+        <p>Time: {{examTime}},</p>
+        <p>Brain Power: {{examBrainPower}},</p>
+        <p>Food: {{examFood}}</p>
+      </div>
+    </div>
+    <p>Current Number: {{exams}}</p>
     <form @submit.prevent="" class="pure-form">
       <div class="input-wrapper">
-        <input type="number" v-model="quantityExam" class="input"/>
-        <div class="button-wrapper"><button @click="addTask('Exam', quantityExam, timeRemainingExam)" class="button">Start</button></div>
+        <!-- onkeypress code taken from https://stackoverflow.com/questions/32777184/html-input-for-positive-whole-numbers-only-type-number -->
+        <input type="number" min="1" onkeypress="return (event.charCode == 8 || event.charCode == 0 || event.charCode == 13) ? null : event.charCode >= 49 && event.charCode <= 57" v-model="quantityExam" class="input"/>
+        <div class="button-wrapper"><button @click="addTask('Exam', quantityExam, timeRemainingExam, examTime, examBrainPower, examFood)" class="button">Start</button></div>
       </div>
     </form>
   </div>
@@ -38,7 +62,7 @@
     <h2>Pending Tasks</h2>
     <div v-for="task in queue" :key="task.id">
       <div class="task">
-        <p><b>{{task.name}}</b> - Quantity: {{task.number}}, Time Remaining: {{task.number * task.timeRemaining}}</p>
+        <p><b>{{task.name}}</b> - Quantity: {{task.number}}, Time Remaining: {{Math.ceil(task.timeRemaining)}}</p>
         <button @click="removeTask(task)" class="button">X</button>
       </div>
     </div>
@@ -50,6 +74,10 @@
 export default {
   name: 'AssignmentOptions',
   props: {
+    subject: String,
+    papers: Number,
+    projects: Number,
+    exams: Number,
     paperTime: Number,
     paperBrainPower: Number,
     paperFood: Number,
@@ -58,29 +86,59 @@ export default {
     projectFood: Number,
     examTime: Number,
     examBrainPower: Number,
-    examFood: Number
+    examFood: Number,
+    time: Number,
+    brainPower: Number,
+    food: Number
   },
   data () {
     return {
       queue: [],
       id: 0,
-      quantityPaper: 0,
-      quantityProject: 0,
-      quantityExam: 0,
+      quantityPaper: "",
+      quantityProject: "",
+      quantityExam: "",
       timeRemainingPaper: 50,
       timeRemainingProject: 85,
       timeRemainingExam: 100
     }
   },
   methods: {
-    addTask(task, quantity, timeLeft) {
-      this.queue.push({
-        id: this.id,
-        name: task,
-        number: quantity,
-        timeRemaining: timeLeft
-      })
-      this.id += 1;
+    addTask(task, quantity, timeLeft, time, brainPower, food) {
+      if (quantity > 0) {
+        let start = Date.now() / 1000;
+        let end = start + quantity * timeLeft;
+        quantity = parseInt(quantity);
+        let taskObject = {
+          id: this.id,
+          name: task,
+          number: quantity,
+          timeRemaining: end - start,
+          startTime: start,
+          endTime: end,
+          time: time,
+          brainPower: brainPower,
+          food: food
+        };
+        this.$emit('resources-spent', taskObject);
+        this.queue.push(taskObject);
+        this.updateTask(taskObject);
+        this.id += 1;
+      }
+    },
+    updateTask(task) {
+      let indexFound = this.queue.indexOf(task);
+      let refreshIntervalID = setInterval(function () {
+        if (this.queue[indexFound].timeRemaining <= 0) {
+          this.removeTask(task);
+          task.subject = this.subject;
+          this.$emit('assignment-completed', task);
+          clearInterval(refreshIntervalID);
+          return;
+        } else {
+          this.queue[indexFound].timeRemaining = this.queue[indexFound].endTime - Date.now() / 1000;
+        }
+      }.bind(this), 1000);
     },
     removeTask(task) {
       let indexFound = this.queue.indexOf(task)
@@ -118,6 +176,24 @@ export default {
     margin: 10px 0;
   }
 
+  .assignment-req p {
+    margin: 5px 0;
+  }
+
+  .resources-req-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+
+  .resources-req {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+  }
+
   /* Buttons */
   .button {
     display: flex;
@@ -136,7 +212,6 @@ export default {
   .button-wrapper {
     display: flex;
     width: 100%;
-    margin-right: 50px;
     justify-content: flex-end;
   }
 
@@ -164,7 +239,7 @@ export default {
     margin: 20px 0;
     flex-direction: column;
     justify-content: center;
-    align-items: flex-start;
+    align-items: center;
   }
 
   .queue {
@@ -208,12 +283,33 @@ export default {
   }
 
   /* Tablet Styles */
-  @media only screen and (min-width: 401px) and (max-width: 960px) {}
+  @media only screen and (min-width: 401px) and (max-width: 960px) {
+    .button-wrapper {
+      margin-right: 50px;
+    }
+  }
 
   /* Desktop Styles */
   @media only screen and (min-width: 961px) {
+    .button-wrapper {
+      margin-right: 50px;
+    }
+
     .assignment-req {
+      display: flex;
       width: 33%;
+      margin: 20px 0;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    .resources-req-wrapper {
+      flex-direction: row;
+    }
+
+    .resources-req-wrapper p {
+      margin-right: 5px;
     }
   }
 </style>

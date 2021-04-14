@@ -48,7 +48,10 @@ const userSchema = new mongoose.Schema({
   // Research will be laid out as follows: [English, Mathematics, Humanities,
   // Fine Arts, Communications, Science, Social Sciences, Spying, Embarassing,
   // Stealing, Finding Error, Food Efficiency, Brain Efficiency, Time Efficiency]
-  research: Array
+  research: Array,
+  // We need the date to compensate the user for resources earned when not
+  // logged in.
+  lastLoggedIn: Date
 });
 
 // Create a model for users
@@ -67,7 +70,8 @@ app.post('/api/users', async (req, res) => {
     assignmentsCommunications: req.body.assignmentsCommunications,
     assignmentsScience: req.body.assignmentsScience,
     assignmentsSocialSciences: req.body.assignmentsSocialSciences,
-    research: req.body.research
+    research: req.body.research,
+    lastLoggedIn: req.body.lastLoggedIn
   });
   try {
     // See if the username already exists. If so, send status code 409.
@@ -77,7 +81,7 @@ app.post('/api/users', async (req, res) => {
         res.send(500);
         return;
       }
-      if (user){
+      if (user) {
         res.send(409);
         return;
       } else {
@@ -93,11 +97,55 @@ app.post('/api/users', async (req, res) => {
 
 app.get('/api/users', async (req, res) => {
   try {
-    const user = User.findOne({username: req.body.username});
+    const userFound = User.findOne({username: req.query.username}, async function (err, user) {
+      if (err) {
+        res.send(500);
+        return;
+      }
+      if (!user) {
+        res.send(404);
+        return;
+      } else {
+        res.send(user);
+      }
+    });
+  } catch (error) {
+    console.log(error);
+    res.sendStatus(500);
+  }
+});
+
+app.put('/api/users/:userID/login', async (req, res) => {
+  try {
+    const user = await User.findOne({_id: req.params.userID});
     if (!user) {
-      res.send(404);
+      res.sendStatus(404);
       return;
     }
+    user.lastLoggedIn = req.body.lastLoggedIn;
+    await user.save();
+    res.send(user);
+  } catch (error) {
+    console.log(error);
+    res.sendStatus(500);
+  }
+});
+
+app.put('/api/users/:userID/add-task', async (req, res) => {
+  try {
+    const user = await User.findOne({_id: req.params.userID});
+    if (!user) {
+      res.sendStatus(404);
+      return;
+    }
+    user.assignmentsEnglish = req.body.assignmentsEnglish;
+    user.assignmentsScience = req.body.assignmentsScience;
+    user.assignmentsFineArts = req.body.assignmentsFineArts;
+    user.assignmentsHumanities = req.body.assignmentsHumanities;
+    user.assignmentsMathematics = req.body.assignmentsMathematics;
+    user.assignmentsCommunications = req.body.assignmentsCommunications;
+    user.assignmentsSocialSciences = req.body.assignmentsSocialSciences;
+    await user.save();
     res.send(user);
   } catch (error) {
     console.log(error);
@@ -153,7 +201,7 @@ app.get('/api/users/:userID/resources', async (req, res) => {
       res.send(404);
       return;
     }
-    let resources = await Resource.find({user: user});
+    let resources = await Resource.findOne({user: user._id});
     res.send(resources);
   } catch (error) {
     console.log(error);
