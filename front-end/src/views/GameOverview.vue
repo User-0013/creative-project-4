@@ -23,6 +23,10 @@
     <p><b>Degree Status</b>: {{degreeStatus}}</p>
     <p><b>Year in School</b>: {{yearInSchool}}</p>
   </div>
+
+  <div class="delete-account">
+    <div class="button-wrapper"><button @click="deleteAccount" class="button">Delete Account</button></div>
+  </div>
 </div>
 </template>
 
@@ -82,24 +86,24 @@ export default {
         // Formulas are different based on a user's resource efficiency.
 
         // Time forumla.
-        if (this.time < this.$root.$data.initData.resources.maxTime) {
+        if (this.time < this.resource.maxTime) {
           this.time += this.$root.$data.initData.resources.timeGrowthCoeff;
         } else {
-          this.time = this.$root.$data.initData.resources.maxTime;
+          this.time = this.resource.maxTime;
         }
 
         // Brain Power formula.
-        if (this.brainPower < this.$root.$data.initData.resources.maxBrainPower) {
+        if (this.brainPower < this.resource.maxBrainPower) {
           this.brainPower += this.$root.$data.initData.resources.brainPowerGrowthCoeff;
         } else {
-          this.brainPower = this.$root.$data.initData.resources.maxBrainPower;
+          this.brainPower = this.resource.maxBrainPower;
         }
 
         // Food formula.
-        if (this.food < this.$root.$data.initData.resources.maxFood) {
+        if (this.food < this.resource.maxFood) {
           this.food += this.$root.$data.initData.resources.foodGrowthCoeff;
         } else {
-          this.food = this.$root.$data.initData.resources.maxFood;
+          this.food = this.resource.maxFood;
         }
       }.bind(this), 1000);
     },
@@ -133,6 +137,13 @@ export default {
       this.time += this.$root.$data.initData.resources.timeGrowthCoeff * resourcesEarnedWhileLoggedOut;
       this.brainPower += this.$root.$data.initData.resources.brainPowerGrowthCoeff * resourcesEarnedWhileLoggedOut;
       this.food += this.$root.$data.initData.resources.foodGrowthCoeff * resourcesEarnedWhileLoggedOut;
+    },
+    async deleteAccount() {
+      await axios.delete(`/api/users/${this.user._id}/resources/${this.resource._id}/delete`, {});
+      await axios.delete(`/api/users/${this.user._id}/delete`, {});
+      this.$root.$data.isLoggedIn = false;
+      this.$root.$data.username = "";
+      this.$root.$router.push({path: `/`})
     }
   },
   created: function () {
@@ -225,11 +236,37 @@ export default {
   margin-left: 5px;
 }
 
+/* Buttons */
+.button {
+  display: flex;
+  width: 200px;
+  height: 50px;
+  color: #D1E8E2;
+  align-items: center;
+  justify-content: center;
+  background-color: #2C3531;
+  border-radius: 4px;
+  margin-top: 2%;
+  margin-left: 20px;
+  margin-bottom: 50px;
+  font-size: 1.25em;
+}
+
+.button-wrapper {
+  display: flex;
+  width: 100%;
+  justify-content: flex-end;
+}
+
 /* Mobile Styles */
 @media only screen and (max-width: 400px) {}
 
 /* Tablet Styles */
-@media only screen and (min-width: 401px) and (max-width: 960px) {}
+@media only screen and (min-width: 401px) and (max-width: 960px) {
+  .button-wrapper {
+    margin-right: 50px;
+  }
+}
 
 /* Desktop Styles */
 @media only screen and (min-width: 961px) {

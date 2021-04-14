@@ -53,6 +53,7 @@ export let initData = {
     socialSciences: "Social Sciences"
   },
   secondsInHour: 3600,
+  emptyArray: [],
   emptyAssignmentsArray: [0, 0, 0],
   emptyResearchArray: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   degreeStatus: "Undergrad",

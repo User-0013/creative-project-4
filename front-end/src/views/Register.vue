@@ -58,6 +58,7 @@ export default {
           assignmentsCommunications: this.$root.$data.initData.emptyAssignmentsArray,
           assignmentsScience: this.$root.$data.initData.emptyAssignmentsArray,
           assignmentsSocialSciences: this.$root.$data.initData.emptyAssignmentsArray,
+          taskQueue: this.$root.$data.initData.emptyArray,
           research: this.$root.$data.initData.emptyResearchArray,
           lastLoggedIn: new Date()
         });

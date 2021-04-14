@@ -76,7 +76,14 @@ export default {
       assignmentsFineArts: this.$root.$data.initData.emptyAssignmentsArray,
       assignmentsCommunications: this.$root.$data.initData.emptyAssignmentsArray,
       assignmentsScience: this.$root.$data.initData.emptyAssignmentsArray,
-      assignmentsSocialSciences: this.$root.$data.initData.emptyAssignmentsArray
+      assignmentsSocialSciences: this.$root.$data.initData.emptyAssignmentsArray,
+      queueEnglish: [],
+      queueMathematics: [],
+      queueHumanities: [],
+      queueFineArts: [],
+      queueCommunications: [],
+      queueScience: [],
+      queueSocialSciences: []
     }
   },
   methods: {
@@ -101,6 +108,7 @@ export default {
         await this.getResource();
         this.getResourcesSinceLastLoggedIn();
         this.updateLastLoggedIn();
+        this.populateQueues();
       } catch (error) {
         console.log(error);
       }
@@ -189,6 +197,15 @@ export default {
       this.brainPower -= taskQuantity * taskBrainPower;
       this.food -= taskQuantity * taskFood;
     },
+    isEnoughResourcesOnTask (number, time, brainPower, food) {
+      if ((this.time - number * time) < 0
+        || (this.brainPower - number * brainPower) < 0
+        || (this.food - number * food) < 0) {
+        return false;
+      } else {
+        return true;
+      }
+    },
     async updateAssignmentsOnTask (task) {
       let assignmentIndex = -1
       switch(task.name) {
@@ -247,6 +264,58 @@ export default {
       } catch (error) {
         console.log(error);
       }
+    },
+    async updateTaskQueue (task) {
+      // Check if this is a duplicate task.
+      let isDuplicate = false;
+      for (let i = 0; i < this.user.taskQueue.length; i++) {
+        if (this.user.taskQueue[i].id === task.id) {
+          isDuplicate = true;
+        }
+      }
+      if (!isDuplicate) {
+        this.user.taskQueue.push(task);
+        try {
+          await axios.put(`/api/users/${this.user._id}/update-task-queue`, {
+            taskQueue: this.user.taskQueue
+          });
+        } catch (error) {
+          console.log(error);
+        }
+      }
+    },
+    async populateQueues () {
+      for (let i = 0; i < this.user.taskQueue.length; i++) {
+        let task = this.user.taskQueue[i];
+        switch (task.subject) {
+          case this.$root.$data.initData.subjects.english:
+            this.queueEnglish.push(task);
+            break;
+          case this.$root.$data.initData.subjects.mathematics:
+            this.queueMathematics.push(task);
+            break;
+          case this.$root.$data.initData.subjects.humanities:
+            this.queueHumanities.push(task);
+            break;
+          case this.$root.$data.initData.subjects.fineArts:
+            this.queueFineArts.push(task);
+            break;
+          case this.$root.$data.initData.subjects.communications:
+            this.queueCommunications.push(task);
+            break;
+          case this.$root.$data.initData.subjects.science:
+            this.queueScience.push(task);
+            break;
+          case this.$root.$data.initData.subjects.socialSciences:
+            this.queueSocialSciences.push(task);
+            break;
+        }
+      }
+    },
+    async saveTaskQueue () {
+      await axios.put(`/api/users/${this.user._id}/update-task-queue`, {
+        taskQueue: this.user.taskQueue
+      });
     }
   },
   created: function () {
@@ -255,7 +324,7 @@ export default {
   mounted: function () {
     this.updateResources();
   },
-  beforeDestroy: function () {
+  destroyed: function () {
     this.saveResources();
   }
 }

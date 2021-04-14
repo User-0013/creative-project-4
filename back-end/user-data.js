@@ -45,6 +45,7 @@ const userSchema = new mongoose.Schema({
   assignmentsCommunications: Array,
   assignmentsScience: Array,
   assignmentsSocialSciences: Array,
+  taskQueue: Array,
   // Research will be laid out as follows: [English, Mathematics, Humanities,
   // Fine Arts, Communications, Science, Social Sciences, Spying, Embarassing,
   // Stealing, Finding Error, Food Efficiency, Brain Efficiency, Time Efficiency]
@@ -70,6 +71,7 @@ app.post('/api/users', async (req, res) => {
     assignmentsCommunications: req.body.assignmentsCommunications,
     assignmentsScience: req.body.assignmentsScience,
     assignmentsSocialSciences: req.body.assignmentsSocialSciences,
+    taskQueue: req.body.taskQueue,
     research: req.body.research,
     lastLoggedIn: req.body.lastLoggedIn
   });
@@ -153,6 +155,32 @@ app.put('/api/users/:userID/add-task', async (req, res) => {
   }
 });
 
+app.put('/api/users/:userID/update-task-queue', async (req, res) => {
+  try {
+    const user = await User.findOne({_id: req.params.userID});
+    if (!user) {
+      res.sendStatus(404);
+      return;
+    }
+    user.taskQueue = req.body.taskQueue;
+    await user.save();
+    res.send(user);
+  } catch (error) {
+    console.log(error);
+    res.sendStatus(500);
+  }
+});
+
+app.delete('/api/users/:userID/delete', async (req, res) => {
+  try {
+    await User.deleteOne({_id: req.params.userID});
+    res.sendStatus(200);
+  } catch (error) {
+    console.log(error);
+    res.sendStatus(500);
+  }
+});
+
 // Schema for resources
 const resourceSchema = new mongoose.Schema({
   user: {
@@ -224,6 +252,16 @@ app.put('/api/users/:userID/resources/:resourceID', async (req, res) => {
     resources.maxTime = req.body.maxTime;
     await resources.save();
     res.send(resources);
+  } catch (error) {
+    console.log(error);
+    res.sendStatus(500);
+  }
+});
+
+app.delete('/api/users/:userID/resources/:resourceID/delete', async (req, res) => {
+  try {
+    await Resource.deleteOne({_id: req.params.resourceID, user: req.params.userID});
+    res.sendStatus(200);
   } catch (error) {
     console.log(error);
     res.sendStatus(500);

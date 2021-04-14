@@ -10,6 +10,7 @@
         <p>Food: {{paperFood}}</p>
       </div>
     </div>
+    <p>Time to Complete: {{timeRemainingPaper}} s</p>
     <p>Current Number: {{papers}}</p>
     <form @submit.prevent="" class="pure-form">
       <div class="input-wrapper">
@@ -29,6 +30,7 @@
         <p>Food: {{projectFood}}</p>
       </div>
     </div>
+    <p>Time to Complete: {{timeRemainingProject}} s</p>
     <p>Current Number: {{projects}}</p>
     <form @submit.prevent="" class="pure-form">
       <div class="input-wrapper">
@@ -48,6 +50,7 @@
         <p>Food: {{examFood}}</p>
       </div>
     </div>
+    <p>Time to Complete: {{timeRemainingExam}} s</p>
     <p>Current Number: {{exams}}</p>
     <form @submit.prevent="" class="pure-form">
       <div class="input-wrapper">
@@ -94,7 +97,8 @@ export default {
   data () {
     return {
       queue: [],
-      id: 0,
+      id: Math.floor(Math.random() * Date.now()),
+      lastTaskEnd: 0,
       quantityPaper: "",
       quantityProject: "",
       quantityExam: "",
@@ -106,53 +110,115 @@ export default {
   methods: {
     addTask(task, quantity, timeLeft, time, brainPower, food) {
       if (quantity > 0) {
-        let start = Date.now() / 1000;
-        let end = start + quantity * timeLeft;
-        quantity = parseInt(quantity);
-        let taskObject = {
-          id: this.id,
-          name: task,
-          number: quantity,
-          timeRemaining: end - start,
-          startTime: start,
-          endTime: end,
-          time: time,
-          brainPower: brainPower,
-          food: food
-        };
-        this.$emit('resources-spent', taskObject);
-        this.queue.push(taskObject);
-        this.updateTask(taskObject);
-        this.id += 1;
+        if (this.$parent.isEnoughResourcesOnTask(quantity, time, brainPower, food)) {
+          let start = this.lastTaskEnd;
+          if (this.lastTaskEnd == 0 || this.lastTaskEnd < Date.now() / 1000) {
+            start = Date.now() / 1000;
+          }
+          let end = start + quantity * timeLeft;
+          this.lastTaskEnd = end;
+          quantity = parseInt(quantity);
+          let taskObject = {
+            id: this.id,
+            name: task,
+            subject: this.subject,
+            number: quantity,
+            timeRemaining: end - start,
+            startTime: start,
+            endTime: end,
+            time: time,
+            brainPower: brainPower,
+            food: food
+          };
+          this.$emit('resources-spent', taskObject);
+          this.queue.push(taskObject);
+          // this.updateTask();
+          // Generate an id that will have a good chance of not conflicting with existing ids.
+          this.id = Math.floor(Math.random() * Date.now());
+        } else {
+          alert("Not enough resources!");
+        }
       }
     },
-    updateTask(task) {
-      let indexFound = this.queue.indexOf(task);
+    updateTask() {
+      // Always start at the front of the queue.
       let refreshIntervalID = setInterval(function () {
-        if (this.queue[indexFound].timeRemaining <= 0) {
-          this.removeTask(task);
-          task.subject = this.subject;
-          this.$emit('assignment-completed', task);
+        if (this.queue[0].timeRemaining <= 0) {
+          this.$emit('assignment-completed', this.queue[0]);
+          this.removeTask(this.queue[0]);
           clearInterval(refreshIntervalID);
           return;
         } else {
-          this.queue[indexFound].timeRemaining = this.queue[indexFound].endTime - Date.now() / 1000;
+          this.queue[0].intervalID = refreshIntervalID;
+          this.queue[0].timeRemaining = this.queue[0].endTime - Date.now() / 1000;
         }
       }.bind(this), 1000);
     },
     removeTask(task) {
       let indexFound = this.queue.indexOf(task)
+      let indexFoundParent = this.$parent.user.taskQueue.indexOf(task)
       if (indexFound !== -1) {
+        // If the task isn't completed yet, refund the user's resources.
+        if (task.timeRemaining > 0) {
+          task.number = -task.number;
+          this.$parent.updateResourcesOnTask(task);
+        }
+        clearInterval(this.queue[indexFound].intervalID);
         this.queue.splice(indexFound, 1)
+      }
+      if (indexFoundParent !== -1) {
+        clearInterval(this.$parent.user.taskQueue[indexFoundParent].intervalID);
+        this.$parent.user.taskQueue.splice(indexFoundParent, 1);
+        this.$parent.saveTaskQueue();
+      }
+    },
+    getQueue () {
+      switch (this.subject) {
+        case this.$root.$data.initData.subjects.english:
+          this.queue = this.$parent.queueEnglish;
+          break;
+        case this.$root.$data.initData.subjects.mathematics:
+          this.queue = this.$parent.queueMathematics;
+          break;
+        case this.$root.$data.initData.subjects.humanities:
+          this.queue = this.$parent.queueHumanities;
+          break;
+        case this.$root.$data.initData.subjects.fineArts:
+          this.queue = this.$parent.queueFineArts;
+          break;
+        case this.$root.$data.initData.subjects.communications:
+          this.queue = this.$parent.queueCommunications;
+          break;
+        case this.$root.$data.initData.subjects.science:
+          this.queue = this.$parent.queueScience;
+          break;
+        case this.$root.$data.initData.subjects.socialSciences:
+          this.queue = this.$parent.queueSocialSciences;
+          break;
       }
     }
   },
+  created: function () {
+    this.getQueue();
+  },
   computed: {
     isTaskQueued () {
-      if (this.queue.length > 0)
+      if (this.queue.length > 0) {
+        this.updateTask();
         return true;
-      else
+      } else {
         return false;
+      }
+    }
+  },
+  beforeDestroy: function() {
+    if (this.queue.length > 0) {
+      // Stop all setInterval's before destroying.
+      for (let i = 0; i < this.queue.length; i++) {
+        this.$parent.updateTaskQueue(this.queue[i]);
+        clearInterval(this.queue[i].intervalID);
+      }
+      this.$parent.saveTaskQueue();
     }
   }
 }
