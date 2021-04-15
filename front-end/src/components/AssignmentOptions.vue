@@ -346,6 +346,10 @@ export default {
     .assignment-req {
       width: 100%;
     }
+
+    .page h3 {
+      font-size: 1.75em;
+    }
   }
 
   /* Tablet Styles */

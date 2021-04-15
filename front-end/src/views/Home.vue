@@ -1,4 +1,5 @@
 <template>
+  <div class="page-wrapper">
   <div class='page'>
     <h1 class='main-title'>Academic Prestige</h1>
 
@@ -85,6 +86,7 @@
 
     <div class='fill-space'></div>
   </div>
+  </div>
 </template>
 
 <script>
@@ -107,7 +109,6 @@ export default {
     display: flex;
     width: 100%;
     height: 100%;
-    flex-direction: column;
   }
 
   .fill-space {
@@ -257,6 +258,16 @@ export default {
 
   /* Desktop Styles */
   @media only screen and (min-width: 961px) {
+    .page-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .page {
+      width: 70%;
+    }
+
     .page h1 {
       display: flex;
       width: 98%;
@@ -272,6 +283,7 @@ export default {
 
     .section {
       text-align: left;
+
     }
 
     .section-wrapper {

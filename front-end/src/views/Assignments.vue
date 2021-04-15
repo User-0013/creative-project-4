@@ -460,7 +460,7 @@ export default {
 /* Mobile Styles */
 @media only screen and (max-width: 400px) {
   .page h2 {
-    font-size: 2.25em;
+    font-size: 1.9em;
   }
 }
 

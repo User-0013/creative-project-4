@@ -1,4 +1,5 @@
 <template>
+  <div class="page-wrapper">
   <div class='page'>
     <div class='patch-notes'>
       <h1>Patch 0.2</h1>
@@ -46,6 +47,7 @@
     </div>
 
     <div class='fill-space'></div>
+  </div>
   </div>
 </template>
 
@@ -161,6 +163,15 @@ export default {
 
   /* Desktop Styles */
   @media only screen and (min-width: 961px) {
+    .page-wrapper {
+      display: flex;
+      justify-content: center;
+    }
+
+    .page {
+      width: 70%;
+    }
+
     .page h1 {
       display: flex;
       width: 98%;
